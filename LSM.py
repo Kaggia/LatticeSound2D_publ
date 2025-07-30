@@ -128,7 +128,7 @@ if debug:
 """
 ########################################################
 #################################### C program Compiling
-command_compile="cd "+str(os.getcwd())+"&& gcc "+C_name+".c h_shape.c C_Lattice_Worker.c C_Lattice_dif_sys.c -pthread -lgsl -lgslcblas -lm  -o "+C_name
+command_compile="cd "+str(os.getcwd())+"&& gcc "+C_name+".c h_shape.c C_Lattice_Worker.c C_Lattice_dif_sys.c -pthread -I/opt/homebrew/Cellar/gsl/2.8/include -L/opt/homebrew/Cellar/gsl/2.8/lib -lgsl -lgslcblas -lm -o "+C_name
 subprocess.run(command_compile,shell=True) # gcc -o oscillatore oscillatore.c -lgsl -lgslcblas -lm
 # -g -fsanitize=address
 ########################################################
@@ -258,34 +258,6 @@ if debug:
 ########################################################    CODE LAUNCH  ########################################################
 """Uses process to launch the sub-processes. Remember to close the shared memory."""
 ########################################################
-################################## Launch of codes
-# creating processes
-processes=[]
-p1 = Process(target=C_code, args=[0])
-processes.append(p1)
-p1.start()
-
-# completing process
-for p in processes:
-    p.join()
-
-processes=[]
-# print("RICORDA DI RIACCENDERE IL CODICE DI ANALISI!!!")
-p2 = Process(target=Py_code, args=[0])
-processes.append(p2)
-p2.start()
-# completing process
-for p in processes:
-    p.join()
-
-# print(memory.read())
-########################################################
-################### Closing shared memory FUNDAMENTAL!!!
-sysv_ipc.remove_shared_memory(memory.id)
-sysv_ipc.remove_semaphore(semaphore.id)
-
-sysv_ipc.remove_shared_memory(memory2.id)
-sysv_ipc.remove_semaphore(semaphore2.id)
 
 ######################################################    IMPORTANT WEBSITES  ######################################################
 #https://www.ibm.com/docs/es/aix/7.2?topic=memory-creating-shared-segment-shmat-subroutine
@@ -337,3 +309,38 @@ sysv_ipc.remove_semaphore(semaphore2.id)
 #                        #Positions ([xi,yi,vxi,vyi] per la lungh y) per lungh x e la y cresce da zero
 #                        #DAGLIELI NORMALIZZATI!
 # print(np.frombuffer(memory.read(), dtype=np.float64))
+
+if __name__ == '__main__':
+    # creating processes
+    processes=[]
+    p1 = Process(target=C_code, args=[0])
+    processes.append(p1)
+    p1.start()
+
+    # completing process
+    for p in processes:
+        p.join()
+
+    processes=[]
+    # print("RICORDA DI RIACCENDERE IL CODICE DI ANALISI!!!")
+    p2 = Process(target=Py_code, args=[0])
+    processes.append(p2)
+    p2.start()
+    # completing process
+    for p in processes:
+        p.join()
+
+    # print(memory.read())
+    ########################################################
+    ################### Closing shared memory FUNDAMENTAL!!!
+    try:
+        sysv_ipc.remove_shared_memory(memory.id)
+        sysv_ipc.remove_semaphore(semaphore.id)
+    except:
+        pass
+
+    try:
+        sysv_ipc.remove_shared_memory(memory2.id)
+        sysv_ipc.remove_semaphore(semaphore2.id)
+    except:
+        pass
