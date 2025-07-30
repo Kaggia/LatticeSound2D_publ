@@ -167,25 +167,31 @@ with open(os.path.join(output_dir,"LS_result.txt"),"a") as file:
 print()
 if debug: print("first element read: ",points_time[0][0])
 
+# Instead of plotting, save each plot to a file in the output directory
 if plot:
-    for t,points in enumerate(points_time):
-        mom_points=np.array(points)
-        # print(mom_points)
-        speeds = np.sqrt(mom_points[:,4]**2 + mom_points[:,5]**2)
-        forces = np.sqrt(mom_points[:,6]**2 + mom_points[:,7]**2)
-        # print(speeds)
-        max_speed=np.max(speeds)
-        max_force=np.max(forces)
+    plot_dir = os.path.join(output_dir, "plots")
+    os.makedirs(plot_dir, exist_ok=True)
+    for t, points in enumerate(points_time):
+        mom_points = np.array(points)
+        if mom_points.shape[0] == 0:
+            continue  # skip empty
+        speeds = np.sqrt(mom_points[:, 4] ** 2 + mom_points[:, 5] ** 2)
+        forces = np.sqrt(mom_points[:, 6] ** 2 + mom_points[:, 7] ** 2)
+        max_speed = np.max(speeds)
+        max_force = np.max(forces)
         plt.figure(figsize=(8, 6))
         for i, point in enumerate(points):
-            plt.scatter(point[2], point[3],c=forces[i],vmin=0, vmax=max_force,cmap='viridis',s=40)#,edgecolors="blue"
+            plt.scatter(point[2], point[3], c=forces[i], vmin=0, vmax=max_force, cmap='viridis', s=40)
             plt.quiver(point[2], point[3], point[4], point[5], speeds[i], angles='xy', scale_units='xy', scale=max_speed*5, cmap='coolwarm')
         plt.title(f"Displacement plot with vector velocities and forces intensity at time plot {t}")
         plt.xlabel("X")
         plt.ylabel("Y")
         plt.grid(True)
         # plt.axis('equal')
-        plt.show()
+        plot_filename = os.path.join(plot_dir, f"displacement_plot_t{t}.png")
+        plt.savefig(plot_filename)
+        print(f"Saved plot to {plot_filename}")
+        plt.close()
 
 #OLD DEPRECATED
 # for t_step in range(tot_step):
