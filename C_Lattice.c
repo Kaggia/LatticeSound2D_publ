@@ -36,7 +36,7 @@
 
 #include <math.h>
 #include <limits.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <pthread.h>                                     /*For multithread */
 
@@ -50,9 +50,41 @@
 
 long long counter = 0;                                    // Counter shared between workers
 pthread_mutex_t mutex;                                    // Mutex to protect access to the counter in multithread
-pthread_barrier_t barrier;                                // The barrier for synchronizing threads
+// Simple barrier implementation for macOS
+typedef struct {
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;
+    int max_count;
+} simple_barrier_t;
+simple_barrier_t barrier;                                // The barrier for synchronizing threads
 
 //###################################################   FUNCTIONS   ###################################################
+//------------------------------------------  SIMPLE BARRIER FUNCTIONS  -------------------------------------------
+void simple_barrier_init(simple_barrier_t *barrier, int count) {
+    pthread_mutex_init(&barrier->mutex, NULL);
+    pthread_cond_init(&barrier->cond, NULL);
+    barrier->count = 0;
+    barrier->max_count = count;
+}
+
+void simple_barrier_wait(simple_barrier_t *barrier) {
+    pthread_mutex_lock(&barrier->mutex);
+    barrier->count++;
+    if (barrier->count >= barrier->max_count) {
+        barrier->count = 0;
+        pthread_cond_broadcast(&barrier->cond);
+    } else {
+        pthread_cond_wait(&barrier->cond, &barrier->mutex);
+    }
+    pthread_mutex_unlock(&barrier->mutex);
+}
+
+void simple_barrier_destroy(simple_barrier_t *barrier) {
+    pthread_mutex_destroy(&barrier->mutex);
+    pthread_cond_destroy(&barrier->cond);
+}
+
 //------------------------------------------  FUNCTION TO READ THE FORCING  -------------------------------------------
 void parse_vector_string(const char *input, double *output, int *count) {
     char buffer[1024];
@@ -229,7 +261,7 @@ void *assignment(void *arg) {
         }
     
         //--------------------------------  Wait until the first worker has calculated the forcing  ---------------------------------
-        pthread_barrier_wait(&barrier);// You need to make sure everyone has read and is ready before you launch operations
+        simple_barrier_wait(&barrier);// You need to make sure everyone has read and is ready before you launch operations
         //----------------------- Explain and launch the work that each thread will perform in the time loop  ------------------
         if (debug) printf("Thread %d esegue incarico al passo %d\n", id, step + 1);
         solver_method((void *)data);
@@ -239,7 +271,7 @@ void *assignment(void *arg) {
         // In caso di debug: Simula un piccolo lavoro (ad esempio una pausa) usleep(500000);  // Pausa di 0.5 secondi per simulare un lavoro
         
         //--------------------------------  Synchronize threads at the end of each step   ---------------------------------
-        pthread_barrier_wait(&barrier);// At the end of the barrier, all threads will copy the data
+        simple_barrier_wait(&barrier);// At the end of the barrier, all threads will copy the data
 
         //--------------------------------    Lattice update  ---------------------------------
                                 /*As the loop updates, global calculations are performed.*/
@@ -483,7 +515,7 @@ void *assignment(void *arg) {
         
         
     //--------------------------------  Synchronize threads: all workers must copy before new cycle   ---------------------------------
-        pthread_barrier_wait(&barrier);// Once the barrier is over, a new time cycle can be made because everyone will read the new data.
+        simple_barrier_wait(&barrier);// Once the barrier is over, a new time cycle can be made because everyone will read the new data.
         printf("Syncro before copy\n");
     }
 
@@ -537,7 +569,7 @@ int main(int argc, char **argv)
     //Definitions for multithread
     pthread_t threads[NUM_THREADS];
     ThreadData thread_data[NUM_THREADS];  // Array of data structures
-    pthread_barrier_init(&barrier, NULL, NUM_THREADS); // Initialize the barrier with the number of threads
+    simple_barrier_init(&barrier, NUM_THREADS); // Initialize the barrier with the number of threads
 
     //Print of important info
     if (debug)
@@ -770,7 +802,7 @@ int main(int argc, char **argv)
         pthread_join(threads[i], NULL);
     }
     // Destroy the barrier
-    pthread_barrier_destroy(&barrier);
+    simple_barrier_destroy(&barrier);
     free(kxp_pt);
     free(force_pt_x);
     free(force_pt_y);
