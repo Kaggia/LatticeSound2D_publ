@@ -1,13 +1,13 @@
 INFORMATICS
 debug=False
-thread_num=1
+thread_num=8
 
 SYSTEM
-chamX=3
-chamY=3
+chamX=20
+chamY=20
 chamZ=1
 D=2 
-Temperature=0.001
+Temperature=0.1
 scaling=2
 thermal_coupling=0.1
 
@@ -37,8 +37,8 @@ TwoD_object.create([3, 3], "air", "solid", 2, 0.1, 273, ["rectangle",[2, 2]])
 
 OUTPUT
 output_time=10
-HERE SUBSTITUTE THIS LINE WITH THE ABSOLUTE PATH IN WHICH YOU DESIRE THE RESULTS
+/Users/stefanozimmitti/Documents/OfficineLeonardo/LatticeSound2D_publ/results
 Plot=True
-cX_plot=[0,3]
-cY_plot=[0,3]
+cX_plot=[0,20]
+cY_plot=[0,20]
 cZ_plot=[0,0];
