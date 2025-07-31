@@ -1,0 +1,8 @@
+# Linux requirements for LatticeSound 2D
+# Core dependencies
+numpy>=1.20.0
+matplotlib>=3.3.0
+sysv-ipc>=1.1.0
+
+# Additional dependencies that may be needed
+tqdm>=4.60.0 

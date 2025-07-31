@@ -25,6 +25,64 @@ LatticeSound2D_publ/
 └── [other project files...]
 ```
 
+## Installation
+
+### Linux Installation
+
+#### Option 1: Automated Installation (Recommended)
+```bash
+# Run the automated installation script
+./install_linux.sh
+```
+
+#### Option 2: Manual Installation
+
+1. **Install system dependencies:**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get update
+   sudo apt-get install python3 python3-pip python3-dev build-essential libgsl-dev
+   
+   # CentOS/RHEL/Fedora
+   sudo yum install python3 python3-pip python3-devel gcc gsl-devel
+   # or for newer versions:
+   sudo dnf install python3 python3-pip python3-devel gcc gsl-devel
+   ```
+
+2. **Install Python dependencies:**
+   ```bash
+   pip3 install -r linux-requirements.txt
+   ```
+
+3. **Compile the C engine:**
+   ```bash
+   cd lattice_sound_engine
+   make
+   ```
+
+### macOS Installation
+
+1. **Install Homebrew (if not already installed):**
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. **Install system dependencies:**
+   ```bash
+   brew install gsl
+   ```
+
+3. **Install Python dependencies:**
+   ```bash
+   pip3 install -r mac-os-requirements.txt
+   ```
+
+4. **Compile the C engine:**
+   ```bash
+   cd lattice_sound_engine
+   make
+   ```
+
 ## Key Changes
 
 ### 1. **Separation of Concerns**
@@ -47,20 +105,20 @@ LatticeSound2D_publ/
 #### Option 1: Using the new entry point (Recommended)
 ```bash
 # From the project root directory
-python run_lattice_sound.py
+python3 run_lattice_sound.py
 
 # With custom config file
-python run_lattice_sound.py path/to/config.flsm
+python3 run_lattice_sound.py path/to/config.flsm
 ```
 
 #### Option 2: Running directly from orchestrator
 ```bash
 # From the orchestrator directory
 cd orchestrator
-python LSM.py
+python3 LSM.py
 
 # With custom config file
-python LSM.py --config path/to/config.flsm
+python3 LSM.py --config path/to/config.flsm
 ```
 
 ### Configuration
@@ -125,6 +183,26 @@ Results are saved to the `results/` directory in the project root. The system au
 2. **Compilation Errors**: Check that all C files are in `lattice_sound_engine/`
 3. **Configuration Errors**: Verify the `Starter.flsm` file is in `orchestrator/`
 4. **Output Directory**: The system automatically creates output directories
+
+### Linux-Specific Issues
+
+1. **GSL library not found**: Install `libgsl-dev` package
+2. **sysv_ipc import error**: Install with `pip3 install sysv-ipc`
+3. **Permission errors**: Ensure proper file permissions and try running with appropriate user privileges
+
+### Testing Installation
+
+After installation, you can test if everything is working correctly:
+
+```bash
+python3 test_installation.py
+```
+
+This will check:
+- Python dependencies (numpy, matplotlib, sysv_ipc)
+- C executable compilation
+- Configuration files
+- Makefile functionality
 
 ### Getting Help
 
